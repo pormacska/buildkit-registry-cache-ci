@@ -3,7 +3,7 @@
 # "compile" -> "link"; runtime stage: base image -> copy artifact.
 # Each work step burns CPU_ITERS chained SHA-256 iterations and writes
 # LAYER_BYTES of seeded incompressible data (see work.py).
-ARG MIRROR=ghcr.io/torpemajom/buildkit-registry-cache-ci/mirror
+ARG MIRROR=ghcr.io/pormacska/buildkit-registry-cache-ci/mirror
 FROM ${MIRROR}/python@sha256:6b1f85a08c199d29d5b6d71ab9c27bd5b3b393492e01216a15758ff69c4be8b8 AS builder
 ARG CPU_ITERS
 ARG LAYER_BYTES

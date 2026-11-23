@@ -86,7 +86,7 @@ python3 -m venv .venv && .venv/bin/pip install -r analysis/requirements.txt
 | `results/results.csv` | the same, one row per build (bulky fields dropped) |
 | `results/summary_by_cell.csv` | per phase × project × variant × scenario × mode: n, failures, flags, wall_s median/IQR, medians of the diagnostics |
 | `results/pairs.csv` | one row per trial: none/min/max side by side |
-| `results/tests.csv` | Wilcoxon signed-rank tests, bootstrap CIs, rank-biserial effect sizes, Spearman (H2), Holm-adjusted p-values |
+| `results/tests.csv` | Wilcoxon signed-rank tests with sign-test robustness check, bootstrap CIs, rank-biserial effect sizes, Spearman (H2), Holm-adjusted p-values |
 | `results/hypotheses.csv` | decision for H1–H4 by the pre-registered rules below |
 | `results/cost_breakeven.csv` | break-even ratios per project × variant × scenario × mode |
 | `results/cost_by_price.csv` | cost per build for every registry price list × runner price × builds per month |
@@ -104,7 +104,9 @@ Pairs: the none/min/max builds of the same trial; d = wall_s(mode) − wall_s(no
 
 Effect sizes: median d with a percentile-bootstrap 95% CI (10,000 resamples, fixed seed) and the
 matched-pairs rank-biserial correlation. Two-sided tests of the S1–S3 cells are reported as a
-supplementary family without a decision.
+supplementary family without a decision. Every Wilcoxon test is repeated as an exact sign test
+(`p_sign`, `p_sign_holm`, Holm within the same family), which does not assume symmetric differences;
+it gives the same decision as the Wilcoxon test in every H1 and H3 test.
 
 ### Cost model
 

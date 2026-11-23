@@ -85,7 +85,9 @@ in `max` mode. `FROM` vertices are never reported as cached and are not counted.
 - **Seed builds** run in random order (min/max) and carry the scenario of their job.
 - **Analysis.** H2 is tested with a one-sided Spearman correlation between the cache hit ratio and the
   relative time saving. The two-sided Wilcoxon tests of the S1–S3 cells are reported as a supplementary
-  family without a decision.
+  family without a decision. As a robustness check against the symmetry assumption of the Wilcoxon
+  signed-rank test, every Wilcoxon test is repeated as an exact sign test with the same alternative and
+  Holm family; the decisions are the same in all 112 Wilcoxon tests (H1, H3 and the S1–S3 family).
 - **H4.** A cell counts as having a shorter cache build when the 95% bootstrap CI of the median paired
   difference lies entirely below 0 (20 cells; 8 meet the rule). The lenient reading (median saving > 0
   only: 21 cells, 9 meet the rule) is reported in `results/hypotheses.csv` as sensitivity. The r_a range

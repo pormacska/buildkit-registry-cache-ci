@@ -1,5 +1,5 @@
 # Caddy v2.11.7 (Go modules), canonical cache-friendly multi-stage build.
-ARG MIRROR=ghcr.io/torpemajom/buildkit-registry-cache-ci/mirror
+ARG MIRROR=ghcr.io/pormacska/buildkit-registry-cache-ci/mirror
 FROM ${MIRROR}/golang@sha256:af00f232205a01baf323bddc5bb4a4ea2e4cbf49e8ccc988beb2558d0f9c882a AS builder
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates git && rm -rf /var/lib/apt/lists/*
 WORKDIR /src

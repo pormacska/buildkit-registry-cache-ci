@@ -16,6 +16,11 @@ fixed seed) and the matched-pairs rank-biserial correlation r = (T+ - T-) / (T+ 
 (Kerby 2014; positive: cache slower). Wilcoxon signed-rank tests are exact when
 n <= 50 without zeros/ties, otherwise the normal approximation; `statistic`
 follows scipy: min(T+, T-) for two-sided tests, T+ for one-sided tests.
+Every Wilcoxon test is repeated as an exact sign test (binomial test on the signs of
+the nonzero d, same alternative) with its own Holm adjustment in the same family
+(p_sign, p_sign_holm). The sign test does not assume that d is symmetric about its
+median (Hollander, Wolfe & Chicken 2014, sec. 3.4); it is a robustness check, the
+decision rules use the Wilcoxon p-values.
 
 Test families (Holm-corrected separately) and decision rules (thesis, ch. 3.6 and table 3):
   H1  S0 cells, Wilcoxon two-sided. Supported if in both cache modes and in every
@@ -164,18 +169,27 @@ def wilcoxon(d, alternative):
     return float(result.statistic), float(result.pvalue), method, None
 
 
-def holm(rows):
-    """Holm step-down adjustment within each family (rows without p-value are skipped)."""
+def sign_test(d, alternative):
+    nonzero = d[d != 0]
+    if not len(nonzero):
+        return None
+    return float(stats.binomtest(int((nonzero > 0).sum()), len(nonzero), 0.5, alternative=alternative).pvalue)
+
+
+def holm(rows, key="p_value", out="p_holm"):
+    """Holm step-down adjustment of `key` within each family (rows without a value are skipped)."""
     families = defaultdict(list)
     for row in rows:
-        if row["p_value"] is not None:
+        if row.get(key) is not None:
             families[row["family"]].append(row)
     for family in families.values():
-        family.sort(key=lambda r: r["p_value"])
+        family.sort(key=lambda r: r[key])
         m, running = len(family), 0.0
         for rank, row in enumerate(family):
-            running = max(running, min(1.0, (m - rank) * row["p_value"]))
-            row["p_holm"], row["family_size"] = running, m
+            running = max(running, min(1.0, (m - rank) * row[key]))
+            row[out] = running
+            if key == "p_value":
+                row["family_size"] = m
 
 
 def tests(pair_rows):
@@ -207,7 +221,7 @@ def tests(pair_rows):
                 statistic, p, method, note = wilcoxon(d, alternative)
                 out.append({"hypothesis": hypothesis, "family": family, "test": "wilcoxon_signed_rank",
                             "alternative": alternative, **base, "statistic": statistic, "p_value": p,
-                            "method": method, "note": note})
+                            "method": method, "note": note, "p_sign": sign_test(d, alternative)})
 
     trend = defaultdict(lambda: ([], []))
     for row in pair_rows:
@@ -229,7 +243,10 @@ def tests(pair_rows):
     for row in out:
         row.setdefault("p_holm", None)
         row.setdefault("family_size", None)
+        row.setdefault("p_sign", None)
+        row.setdefault("p_sign_holm", None)
     holm(out)
+    holm(out, "p_sign", "p_sign_holm")
     return out
 
 
@@ -280,7 +297,7 @@ def main():
     write(os.path.join(args.results, "pairs.csv"), pair_rows)
     columns = ["hypothesis", "family", "test", "alternative", "project", "variant", "scenario", "mode", "n_pairs",
                "median_none_s", "median_mode_s", "median_diff_s", "ci95_low_s", "ci95_high_s", "median_rel_saving",
-               "statistic", "p_value", "p_holm", "family_size", "effect_rank_biserial", "spearman_rho", "method", "note"]
+               "statistic", "p_value", "p_holm", "p_sign", "p_sign_holm", "family_size", "effect_rank_biserial", "spearman_rho", "method", "note"]
     test_rows = tests(pair_rows)
     write(os.path.join(args.results, "tests.csv"), test_rows, columns)
     real = {r["project"] for r in rows if r["ecosystem"] != "synthetic"}

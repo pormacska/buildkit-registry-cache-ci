@@ -1,5 +1,5 @@
 # Uptime Kuma 1.23.17 (Node.js / npm), canonical cache-friendly multi-stage build.
-ARG MIRROR=ghcr.io/torpemajom/buildkit-registry-cache-ci/mirror
+ARG MIRROR=ghcr.io/pormacska/buildkit-registry-cache-ci/mirror
 FROM ${MIRROR}/node@sha256:1694ccde5ea9efb3060bb8612b1f287256061ff2a04d75dc1b71f57cb7239520 AS builder
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates python3 make g++ && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
